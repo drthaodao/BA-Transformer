@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from glob import glob
-import mathplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import torch.nn.functional as F
 from medpy.metric.binary import hd, hd95, dc, jc, assd
 
@@ -76,8 +76,8 @@ test_loader = torch.utils.data.DataLoader(dataset,
                                           drop_last=False,
                                           shuffle=False)
 
-VIS_DIR = ''
-os.makedirs(VIS_DIR, exists_ok = True)
+VIS_DIR = '/content/drive/MyDrive/Repo/BA-Transformer/Visualize'
+os.makedirs(VIS_DIR, exist_ok = True)
 
 def test():
     model.eval()
@@ -112,16 +112,16 @@ def test():
     datas = np.concatenate(datas, axis=0)
     labels = np.concatenate(labels, axis=0)
     pres = np.concatenate(pres, axis=0)
-    print(labels.shape, pres.shape)
+    print(datas.shape,labels.shape, pres.shape)
     plt.figure()
     for _id in range(labels.shape[0]):
         plt.subplot(1, 3, 1)
-        plt.imshow(np.asarray(datas[_id][0] * 255, dtype='uint8'))
+        plt.imshow(np.asarray(datas[_id] * 255, dtype='uint8').transpose(1,2,0))
         plt.subplot(1, 3, 2)
         plt.imshow(labels[_id][0] * 255)
         plt.subplot(1, 3, 3)
         plt.imshow(pres[_id][0] * 255)
-        plt.imsave(os.path.join(VIS_DIR, f'{_id:04d}.jpg'))
+        plt.savefig(os.path.join(VIS_DIR, f'{_id:04d}.jpg'))
         plt.clf()
 #         dice_ave = dc(labels[_id], pres[_id])
 #         jc_ave = jc(labels[_id], pres[_id])
