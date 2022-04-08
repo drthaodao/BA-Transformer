@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from glob import glob
+import mathplotlib.pyplot as plt
 import torch.nn.functional as F
 from medpy.metric.binary import hd, hd95, dc, jc, assd
 
@@ -75,6 +76,8 @@ test_loader = torch.utils.data.DataLoader(dataset,
                                           drop_last=False,
                                           shuffle=False)
 
+VIS_DIR = ''
+os.makedirs(VIS_DIR, exists_ok = True)
 
 def test():
     model.eval()
@@ -88,6 +91,7 @@ def test():
     from tqdm import tqdm
     labels = []
     pres = []
+    datas = []
     for batch_idx, batch_data in tqdm(enumerate(test_loader)):
         data = batch_data['image'].to(device).float()
         label = batch_data['label'].to(device).float()
@@ -102,41 +106,52 @@ def test():
             output = output.cpu().numpy() > 0.5
         label = label.cpu().numpy()
         assert (output.shape == label.shape)
+        datas.append(data.cpu().numpy())
         labels.append(label)
         pres.append(output)
+    datas = np.concatenate(datas, axis=0)
     labels = np.concatenate(labels, axis=0)
     pres = np.concatenate(pres, axis=0)
     print(labels.shape, pres.shape)
+    plt.figure()
     for _id in range(labels.shape[0]):
-        dice_ave = dc(labels[_id], pres[_id])
-        jc_ave = jc(labels[_id], pres[_id])
-        try:
-            hd95_ave = hd95(labels[_id], pres[_id])
-            assd_ave = assd(labels[_id], pres[_id])
-        except RuntimeError:
-            num += 1
-            hd95_ave = 0
-            assd_ave = 0
+        plt.subplot(1, 3, 1)
+        plt.imshow(np.asarray(datas[_id][0] * 255, dtype='uint8'))
+        plt.subplot(1, 3, 2)
+        plt.imshow(labels[_id][0] * 255)
+        plt.subplot(1, 3, 3)
+        plt.imshow(pres[_id][0] * 255)
+        plt.imsave(os.path.join(VIS_DIR, f'{_id:04d}.jpg'))
+        plt.clf()
+#         dice_ave = dc(labels[_id], pres[_id])
+#         jc_ave = jc(labels[_id], pres[_id])
+#         try:
+#             hd95_ave = hd95(labels[_id], pres[_id])
+#             assd_ave = assd(labels[_id], pres[_id])
+#         except RuntimeError:
+#             num += 1
+#             hd95_ave = 0
+#             assd_ave = 0
 
-        dice_value += dice_ave
-        jc_value += jc_ave
-        hd95_value += hd95_ave
-        assd_value += assd_ave
+#         dice_value += dice_ave
+#         jc_value += jc_ave
+#         hd95_value += hd95_ave
+#         assd_value += assd_ave
 
-    dice_average = dice_value / (labels.shape[0] - num)
-    jc_average = jc_value / (labels.shape[0] - num)
-    hd95_average = hd95_value / (labels.shape[0] - num)
-    assd_average = assd_value / (labels.shape[0] - num)
+#     dice_average = dice_value / (labels.shape[0] - num)
+#     jc_average = jc_value / (labels.shape[0] - num)
+#     hd95_average = hd95_value / (labels.shape[0] - num)
+#     assd_average = assd_value / (labels.shape[0] - num)
 
-    logging.info('Dice value of test dataset  : %f' % (dice_average))
-    logging.info('Jc value of test dataset  : %f' % (jc_average))
-    logging.info('Hd95 value of test dataset  : %f' % (hd95_average))
-    logging.info('Assd value of test dataset  : %f' % (assd_average))
+#     logging.info('Dice value of test dataset  : %f' % (dice_average))
+#     logging.info('Jc value of test dataset  : %f' % (jc_average))
+#     logging.info('Hd95 value of test dataset  : %f' % (hd95_average))
+#     logging.info('Assd value of test dataset  : %f' % (assd_average))
 
-    print("Average dice value of evaluation dataset = ", dice_average)
-    print("Average jc value of evaluation dataset = ", jc_average)
-    print("Average hd95 value of evaluation dataset = ", hd95_average)
-    print("Average assd value of evaluation dataset = ", assd_average)
+#     print("Average dice value of evaluation dataset = ", dice_average)
+#     print("Average jc value of evaluation dataset = ", jc_average)
+#     print("Average hd95 value of evaluation dataset = ", hd95_average)
+#     print("Average assd value of evaluation dataset = ", assd_average)
     return dice_average
 
 
