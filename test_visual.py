@@ -117,41 +117,45 @@ def test():
     for _id in range(labels.shape[0]):
         plt.subplot(1, 3, 1)
         plt.imshow(np.asarray(datas[_id] * 255, dtype='uint8').transpose(1,2,0))
+        plt.axis('off')
         plt.subplot(1, 3, 2)
-        plt.imshow(labels[_id][0] * 255)
+        plt.imshow(255-labels[_id][0] * 255,cmap='Greys')
+        plt.axis('off')
         plt.subplot(1, 3, 3)
-        plt.imshow(pres[_id][0] * 255)
-        plt.savefig(os.path.join(VIS_DIR, f'{_id:04d}.jpg'))
+        plt.imshow(255-pres[_id][0] * 255,cmap='Greys')
+        plt.axis('off')
+        dice_ave = dc(labels[_id], pres[_id])
+        plt.savefig(os.path.join(VIS_DIR,'{}.jpg'.format(dice_ave)))
         plt.clf()
-#         dice_ave = dc(labels[_id], pres[_id])
-#         jc_ave = jc(labels[_id], pres[_id])
-#         try:
-#             hd95_ave = hd95(labels[_id], pres[_id])
-#             assd_ave = assd(labels[_id], pres[_id])
-#         except RuntimeError:
-#             num += 1
-#             hd95_ave = 0
-#             assd_ave = 0
+        
+        #jc_ave = jc(labels[_id], pres[_id])
+        try:
+            hd95_ave = hd95(labels[_id], pres[_id])
+            assd_ave = assd(labels[_id], pres[_id])
+        except RuntimeError:
+            num += 1
+            hd95_ave = 0
+            assd_ave = 0
 
-#         dice_value += dice_ave
-#         jc_value += jc_ave
-#         hd95_value += hd95_ave
-#         assd_value += assd_ave
+        dice_value += dice_ave
+        #jc_value += jc_ave
+        hd95_value += hd95_ave
+        assd_value += assd_ave
 
-#     dice_average = dice_value / (labels.shape[0] - num)
-#     jc_average = jc_value / (labels.shape[0] - num)
-#     hd95_average = hd95_value / (labels.shape[0] - num)
-#     assd_average = assd_value / (labels.shape[0] - num)
+    dice_average = dice_value / (labels.shape[0] - num)
+    #jc_average = jc_value / (labels.shape[0] - num)
+    hd95_average = hd95_value / (labels.shape[0] - num)
+    assd_average = assd_value / (labels.shape[0] - num)
 
-#     logging.info('Dice value of test dataset  : %f' % (dice_average))
-#     logging.info('Jc value of test dataset  : %f' % (jc_average))
-#     logging.info('Hd95 value of test dataset  : %f' % (hd95_average))
-#     logging.info('Assd value of test dataset  : %f' % (assd_average))
+    logging.info('Dice value of test dataset  : %f' % (dice_average))
+    #logging.info('Jc value of test dataset  : %f' % (jc_average))
+    logging.info('Hd95 value of test dataset  : %f' % (hd95_average))
+    logging.info('Assd value of test dataset  : %f' % (assd_average))
 
-#     print("Average dice value of evaluation dataset = ", dice_average)
-#     print("Average jc value of evaluation dataset = ", jc_average)
-#     print("Average hd95 value of evaluation dataset = ", hd95_average)
-#     print("Average assd value of evaluation dataset = ", assd_average)
+    print("Average dice value of evaluation dataset = ", dice_average)
+    #print("Average jc value of evaluation dataset = ", jc_average)
+    print("Average hd95 value of evaluation dataset = ", hd95_average)
+    print("Average assd value of evaluation dataset = ", assd_average)
     return dice_average
 
 
